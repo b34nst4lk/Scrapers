@@ -13,6 +13,7 @@ def getHTML(link, counter):
 Date = datetime.datetime.today().strftime('%y%m%d')
 
 # Grab links from search pages
+## To filter for specific search results, update the suffixes of the url below.
 link = 'http://www.sgcarmart.com/used_cars/listing.php?BRSR={}&RPG=100&AVL=2&VEH=2'
 
 ## Get the total page count for search results
@@ -40,16 +41,15 @@ link = 'http://www.sgcarmart.com/used_cars/{}'
 for i, key in enumerate(output):
     html = getHTML(link, output[key]['suffix'])
     table = html.find('div', id='main_left').find('div', class_='box')
-    
+
     # For monitoring progress
     if i % 10 == 0:
         print('{}: {}'.format(i, datetime.datetime.now()))
-        
     rows = table.find_all('tr')
 
     for row in rows:
         cells = row.find_all('td')
-        
+
         # If statement excludes rows that are not required.
         if len(cells) >= 2 and \
                 cells[0].get_text() and cells[1].get_text() and \
@@ -57,7 +57,6 @@ for i, key in enumerate(output):
                  cells[0].get_text().find('Available') == -1):
 
             output[key][cells[0].get_text().strip()] = cells[1].get_text().strip()
-            
 print('Data Scrapped! {}'.format(datetime.datetime.now()))
 
 output_df = DataFrame(output)
