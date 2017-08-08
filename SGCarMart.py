@@ -7,8 +7,22 @@ import os
 
 print('Start! {}'.format(datetime.datetime.now()))
 
+
 def getHTML(link, counter):
     return bs(get(link.format(counter)).content, "html.parser")
+
+
+def cleanText(string):
+    cleanDict = {"'": "`",
+                 '"': "`",
+                 "\n": " ",
+                 "  ": " "}
+
+    string = string.strip()
+    for key in cleanDict:
+        string = string.replace(key, cleanDict[key])
+
+    return string
 
 Date = datetime.datetime.today().strftime('%y%m%d')
 
@@ -36,27 +50,40 @@ for i in range(page_count):
 
 print('Links Get! {}'.format(datetime.datetime.now()))
 
+
 # For each car, find the first <div> tag with class "box". Go through each row within the table in the <div> and scrape data from columns 1 and 2.
 link = 'http://www.sgcarmart.com/used_cars/{}'
-for i, key in enumerate(output):
-    html = getHTML(link, output[key]['suffix'])
-    table = html.find('div', id='main_left').find('div', class_='box')
+cleanLinkDict = {'listing.php?MOD=': '',
+                 '&AVL=2': '',
+                 '+': ' '}
 
+
+for i, key in enumerate(output):
     # For monitoring progress
-    if i % 10 == 0:
+    if i % 50 == 0:
         print('{}: {}'.format(i, datetime.datetime.now()))
+
+    html = getHTML(link, output[key]['suffix'])
+
+    model = html.find('a', class_='link_redbanner')['href'].strip()
+
+    for replace in cleanLinkDict:
+        model = model.replace(replace, cleanLinkDict[replace])
+
+    output[key]['model'] = model
+
+    table = html.find('div', id='main_left').find('div', class_='box')
     rows = table.find_all('tr')
 
     for row in rows:
         cells = row.find_all('td')
 
-        # If statement excludes rows that are not required.
         if len(cells) >= 2 and \
                 cells[0].get_text() and cells[1].get_text() and \
                 (cells[0].get_text().find('View specs of') == -1 or
-                 cells[0].get_text().find('Available') == -1):
+                         cells[0].get_text().find('Available') == -1):
 
-            output[key][cells[0].get_text().strip()] = cells[1].get_text().strip()
+            output[key][cleanText(cells[0].get_text())] = cleanText(cells[1].get_text())
 print('Data Scrapped! {}'.format(datetime.datetime.now()))
 
 output_df = DataFrame(output)
