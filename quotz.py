@@ -3,7 +3,6 @@ from bs4 import BeautifulSoup as bs
 from csv import DictWriter
 from datetime import datetime
 import os
-from pprint import pprint
 
 PAGE_URL = 'https://www.quotz.com.sg/cars_for_bidding/{}'
 CAR_URL = 'https://www.quotz.com.sg/biddingdetails?AID={}'
