@@ -30,7 +30,6 @@ def cleanText(string):
 
 def getCarDetails(car_id):
     car = {}
-    car['id'] = car_id
     content = getHTML(CAR_URL, car_id).find('div', {'class': 'bidding-details'})
     car['Model'] = content.find('h1').text
     car['Bidprice'], car['NoOfBids'] = [info.text for info in content.find_all('span', {'class': 'bid-style'})]
@@ -49,10 +48,13 @@ def getCarList(limit=0):
         if (limit and limit <  page_num) or len(car_list) == 0:
             return
         else:
-            for car in car_list:
-                link = car.find('a')['href']
+            for each_car in car_list:
+                link = each_car.find('a')['href']
                 car_id = link.split('=')[-1]
-                yield car_id
+                car_status = each_car.find('div', {'class': 'solid-btn'}).text
+                car = {'id': car_id,
+                        'status': car_status}
+                yield car
 
 
 #----------------------------------------
@@ -66,7 +68,8 @@ for count, car_id in enumerate(getCarList(1)):
     if count % 100 == 0:
         print('{} cars scraped'.format(count))
 
-    car_details, headers = getCarDetails(car_id)
+    car_details, headers = getCarDetails(car_info['id'])
+    car_details.update(car_info)
     cars.append(car_details)
     # Ensure that all headers are accounted for
     all_headers.extend([header for header in headers if header not in all_headers])
