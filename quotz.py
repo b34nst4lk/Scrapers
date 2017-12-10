@@ -55,7 +55,9 @@ def getCarList(limit=0):
                 yield car_id
 
 
-
+#----------------------------------------
+#       Scraping  begins here
+#----------------------------------------
 
 print('Start! {}'.format(datetime.now()))
 cars = []
