@@ -10,7 +10,6 @@ CAR_URL = 'https://www.quotz.com.sg/biddingdetails?AID={}'
 
 
 def getHTML(link, suffix):
-    #beautiful soup tells the software to get the link from website as content
     return bs(get(link.format(suffix)).content, "html.parser")
 
 
