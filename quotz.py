@@ -64,8 +64,8 @@ def getCarList(limit=0):
 print('Start! {}'.format(datetime.now()))
 cars = []
 all_headers = []
-for count, car_id in enumerate(getCarList(1)):
-    if count % 100 == 0:
+for count, car_info in enumerate(getCarList(1)):
+    if count % 10 == 0:
         print('{} cars scraped'.format(count))
 
     car_details, headers = getCarDetails(car_info['id'])
@@ -78,9 +78,10 @@ print('Scraping complete')
 print('Preparing csv file...')
 path = os.path.dirname(os.path.realpath(__file__))
 path += '/' if '/' in path else '\\'
+file_name = '{}quotz_{}'.format(path, datetime.now().strftime('%y%m%d'))
 
-with open('{}quotz_{}'.format(path, datetime.now().strftime('%y%m%d')), 'w') as output_file:
+with open(file_name, 'w') as output_file:
     csv = DictWriter(output_file, all_headers)
     csv.writeheader()
     csv.writerows(cars)
-    print('File saved at {}'.format(path))
+    print('File saved at {}'.format(file_name))
