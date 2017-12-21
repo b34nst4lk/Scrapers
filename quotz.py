@@ -62,7 +62,7 @@ def getCarList(limit=0):
 print('Start! {}'.format(datetime.now()))
 cars = []
 all_headers = []
-for count, car_info in enumerate(getCarList(1)):
+for count, car_info in enumerate(getCarList()):
     if count % 10 == 0:
         print('{} cars scraped'.format(count))
 
