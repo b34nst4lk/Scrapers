@@ -13,16 +13,22 @@ def getHTML(link, suffix):
 
 
 def cleanText(string):
-    # remove any text that may screw with Excel, and clearn up the text to look pretty
+    # Remove non-ascii characters
+    string = unidecode(string)
+
+    # remove any text that may screw with Excel, and clean up the text to look pretty
     line_breaks = {'\n': '', '\r': '', '\t': ''}
     cleanDict = {"'": "`", '"' : "`", "  ": " "}
     string = string.strip()
+
     # remove all line breaks and tabs in a string first
     for key in line_breaks:
         string = string.replace(key, line_breaks[key])
+
     # replace all double spaces with single spaces, and replace all quotes with backticks `
     for key in cleanDict:
         string = string.replace(key, cleanDict[key])
+
     return string.strip()
 
 
