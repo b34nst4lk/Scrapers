@@ -2,6 +2,8 @@ from requests import get
 from bs4 import BeautifulSoup as bs
 from csv import DictWriter
 from datetime import datetime
+from mongo import MongoSession
+from unidecode import unidecode
 import os
 
 PAGE_URL = 'https://www.quotz.com.sg/cars_for_bidding/{}'
@@ -12,13 +14,15 @@ def getHTML(link, suffix):
     return bs(get(link.format(suffix)).content, "html.parser")
 
 
-def cleanText(string):
+def cleanText(string, key=False):
     # Remove non-ascii characters
     string = unidecode(string)
 
     # remove any text that may screw with Excel, and clean up the text to look pretty
     line_breaks = {'\n': '', '\r': '', '\t': ''}
     cleanDict = {"'": "`", '"' : "`", "  ": " "}
+    if key:
+        cleanDict["."] = ""
     string = string.strip()
 
     # remove all line breaks and tabs in a string first
@@ -39,7 +43,7 @@ def getCarDetails(car_id):
     car['Bidprice'], car['NoOfBids'] = [info.text for info in content.find_all('span', {'class': 'bid-style'})]
     for row in content.find_all('div', {'class': 'car-details'}):
         info = row.find_all('div')
-        car[cleanText(info[1].text)] = cleanText(info[2].text)
+        car[cleanText(info[1].text, key =True)] = cleanText(info[2].text)
     car['Posted at'] = cleanText(content.find('div', {'class': 'etc-info'}).text.split('|')[0].split(":")[1])
     return car, car.keys()
 
@@ -65,28 +69,16 @@ def getCarList(limit=0):
 #----------------------------------------
 #       Scraping  begins here
 #----------------------------------------
+session = MongoSession('mongodb://localhost:10101', db='quotz')
 
 print('Start! {}'.format(datetime.now()))
-cars = []
-all_headers = []
-for count, car_info in enumerate(getCarList(1)):
+for count, car_info in enumerate(getCarList()):
     if count % 10 == 0:
         print('{} cars scraped'.format(count))
 
     car_details, headers = getCarDetails(car_info['id'])
-    car_details.update(car_info)
-    cars.append(car_details)
-    # Ensure that all headers are accounted for
-    all_headers.extend([header for header in headers if header not in all_headers])
+    filter_dict = {'id': car_info['id']}
+    car_details.update(filter_dict)
+    session.update(filter_dict , car_details, 'quotz', upsert=True)
+    
 print('Scraping complete')
-
-print('Preparing csv file...')
-path = os.path.dirname(os.path.realpath(__file__))
-path += '/' if '/' in path else '\\'
-file_name = '{}quotz_{}'.format(path, datetime.now().strftime('%y%m%d'))
-
-with open(file_name, 'w') as output_file:
-    csv = DictWriter(output_file, all_headers)
-    csv.writeheader()
-    csv.writerows(cars)
-    print('File saved at {}'.format(file_name))
