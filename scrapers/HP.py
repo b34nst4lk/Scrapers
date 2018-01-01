@@ -42,7 +42,7 @@ def getItemDetails(url=ITEM_URL, suffix=''):
     item['name'] = content.find('h1', {'class': 'pb-product__name'}).text
     item['price'] = content.find('p', {'class': 'pb-price__now'}).text 
     table = content.find('table', {'class': 'specs-table'})
-    if tablet :
+    if table:
         for spec in table.find_all('tr'):
             key = spec.find('th', {'class': 'specs-table__key'})
             value = spec.find('td', {'class': 'specs-table__value'})
